@@ -1,4 +1,4 @@
-package com.om.smartpost.entity;
+package com.om.smartpost.enums;
 
 public enum UserRole {
     RECEIVER,

@@ -1,5 +1,6 @@
 package com.om.smartpost.entity;
 
+import com.om.smartpost.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
