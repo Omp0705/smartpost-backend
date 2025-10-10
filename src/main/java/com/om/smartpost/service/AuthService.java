@@ -3,6 +3,7 @@ package com.om.smartpost.service;
 import com.om.smartpost.dto.request.LoginReq;
 import com.om.smartpost.dto.request.RegisterReq;
 import com.om.smartpost.dto.response.AuthResponse;
+import com.om.smartpost.entity.RefreshToken;
 import com.om.smartpost.entity.User;
 import com.om.smartpost.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthResponse register(RegisterReq request) {
         // Check if username already exists
@@ -68,8 +70,8 @@ public class AuthService {
 
             // Generate JWT token
             String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
-
-            return new AuthResponse(token, null, user.getUsername(), user.getRole());
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getUserId());
+            return new AuthResponse(token,refreshToken.getToken() , user.getUsername(), user.getRole());
         } else {
             throw new UsernameNotFoundException("Invalid credentials");
         }

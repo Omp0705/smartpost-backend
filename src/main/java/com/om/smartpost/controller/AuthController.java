@@ -2,8 +2,11 @@ package com.om.smartpost.controller;
 
 import com.om.smartpost.dto.request.LoginReq;
 import com.om.smartpost.dto.request.RegisterReq;
+import com.om.smartpost.dto.request.TokenRefreshReq;
 import com.om.smartpost.dto.response.AuthResponse;
+import com.om.smartpost.entity.RefreshToken;
 import com.om.smartpost.service.AuthService;
+import com.om.smartpost.service.RefreshTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
 
     // Public endpoint: Register new users
     @PostMapping("/register")
@@ -29,6 +33,11 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginReq request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody TokenRefreshReq request) {
+        return ResponseEntity.ok(refreshTokenService.refreshToken(request.getRefreshToken()));
     }
 
     // Example protected endpoint for role validation

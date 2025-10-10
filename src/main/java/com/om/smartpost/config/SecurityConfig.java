@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login","/api/auth/refresh").permitAll()
                         .requestMatchers("/api/auth/receiver/**").hasRole("RECEIVER")
                         .requestMatchers("/api/auth/postman/**").hasRole("POSTMAN")
                         .requestMatchers("/api/auth/admin/**").hasRole("POST_ADMIN")
