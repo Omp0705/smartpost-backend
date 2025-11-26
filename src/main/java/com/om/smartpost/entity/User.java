@@ -20,17 +20,20 @@ public class User {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(unique = true,nullable = false,length = 50)
+    @Column(name = "full_name", nullable = false, length = 100)
+    private String fullName;
+
+    @Column(unique = true, nullable = false, length = 50)
     private String username;
 
-    @Column(unique = true,nullable = false,length = 100)
+    @Column(unique = true, nullable = false, length = 100)
     private String email;
 
-    @Column(name = "mobile_no",unique = true,nullable = false,length = 15)
+    @Column(name = "mobile_no", unique = true, nullable = false, length = 15)
     private String mobileNo;
 
     // System will not include the password as plain text (it will be hashed)
-    @Column(name = "password_hash",unique = true,nullable = false)
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
@@ -46,18 +49,15 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-
-    // whenever the entity will be created this function block will be called
+    // Automatically set timestamps
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
 
-    // whenever the entity will be updated this function block will be called
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
 }

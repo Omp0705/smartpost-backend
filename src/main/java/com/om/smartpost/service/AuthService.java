@@ -3,10 +3,16 @@ package com.om.smartpost.service;
 import com.om.smartpost.dto.request.LoginReq;
 import com.om.smartpost.dto.request.RegisterReq;
 import com.om.smartpost.dto.response.AuthResponse;
+import com.om.smartpost.dto.response.SignUpResponse;
 import com.om.smartpost.entity.RefreshToken;
 import com.om.smartpost.entity.User;
+import com.om.smartpost.error.ErrorCodes;
+import com.om.smartpost.exception.ConstraintViolationTranslator;
+import com.om.smartpost.exception.DuplicateResourceException;
 import com.om.smartpost.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,19 +32,21 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
 
-    public AuthResponse register(RegisterReq request) {
-        // Check if username already exists
+    public ResponseEntity<Object> register(RegisterReq request) {
+        // Pre-checks to return friendly errors quickly (still catch DB race conditions later)
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already exists");
+            throw new DuplicateResourceException(ErrorCodes.USERNAME_EXISTS.toString(), "Username already exists");
         }
 
-        // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new DuplicateResourceException(ErrorCodes.EMAIL_EXISTS.toString(), "Email already exists");
+        }
+        if (userRepository.existsByMobileNo(request.getMobileNo())) {
+            throw new DuplicateResourceException(ErrorCodes.MOBILE_EXISTS.toString(),"Mobile No alredy exists");
         }
 
-        // Create new user
         User user = new User();
+        user.setFullName(request.getFullName());
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setMobileNo(request.getMobileNo());
@@ -48,13 +56,23 @@ public class AuthService {
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
-        userRepository.save(user);
+        try {
+            userRepository.save(user);
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // Race condition fallback — try to translate DB constraint to a known error code
+            ErrorCodes code = ConstraintViolationTranslator.toErrorCode(ex).orElse(ErrorCodes.DUPLICATE_RESOURCE);
+            String message = switch (code) {
+                case USERNAME_EXISTS -> "Username already exists";
+                case EMAIL_EXISTS -> "Email already exists";
+                default -> "Resource conflict";
+            };
+            throw new DuplicateResourceException(code.toString(), message, ex);
+        }
 
-        // Generate JWT token
-        String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
 
-        return new AuthResponse(token, null, user.getUsername(), user.getRole());
+        return ResponseEntity.status(HttpStatus.CREATED).body(new SignUpResponse("Profile created successfully"));
     }
+
 
     public AuthResponse login(LoginReq request) {
         // Authenticate user
