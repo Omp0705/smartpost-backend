@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartPost Tracking</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #0f172a; padding: 20px; margin: 0; }
+        .container { max-width: 480px; margin: 0 auto; background: white; padding: 24px; border-radius: 20px; box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1); }
+
+        /* Header & Basics */
+        h2 { margin-top: 0; color: #ea580c; font-size: 22px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: #dcfce7; color: #166534; }
+        .header-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #f1f5f9; }
+        .label { font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .value { font-size: 15px; font-weight: 600; color: #0f172a;}
+
+        /* System States */
+        .error { color: #dc2626; background: #fee2e2; padding: 12px; border-radius: 8px; font-size: 14px; display: none; text-align: center; }
+        #loading { text-align: center; color: #64748b; padding: 40px 0; font-weight: 500; }
+        #content { display: none; }
+        .section-title { font-size: 16px; font-weight: 700; margin: 28px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
+
+        /* Timeline Styles */
+        .timeline { list-style: none; padding: 0; margin: 0; }
+        .timeline-item { position: relative; padding-left: 36px; padding-bottom: 24px; }
+        .timeline-item:last-child { padding-bottom: 0; }
+
+        /* The connecting line */
+        .timeline-item::before { content: ''; position: absolute; left: 11px; top: 24px; bottom: 0; width: 2px; background: #e2e8f0; z-index: 0; }
+        .timeline-item:last-child::before { display: none; }
+        .timeline-item.line-active::before { background: #b91c1c; } /* Dark red line connecting active steps */
+
+        /* The circle icon */
+        .timeline-icon { position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: #f8fafc; border: 2px solid #cbd5e1; display: flex; align-items: center; justify-content: center; z-index: 1; transition: all 0.3s; }
+        .timeline-item.completed .timeline-icon { background: #b91c1c; border-color: #b91c1c; box-shadow: 0 0 0 4px #fee2e2; }
+        .timeline-icon svg { width: 14px; height: 14px; color: white; display: none; }
+        .timeline-item.completed .timeline-icon svg { display: block; }
+
+        /* Timeline Text */
+        .timeline-title { font-size: 15px; font-weight: 600; color: #64748b; line-height: 24px; }
+        .timeline-item.completed .timeline-title { color: #0f172a; }
+        .timeline-desc { font-size: 13px; color: #475569; margin-top: 2px; }
+        .timeline-time { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+
+        /* Delivery Slots Grid */
+        .slot-grid { display: grid; gap: 12px; margin-top: 12px; }
+        .slot-card { position: relative; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s; background: white; text-align: left; width: 100%; box-sizing: border-box; }
+        .slot-card:hover:not(:disabled) { border-color: #cbd5e1; background: #f8fafc; }
+        .slot-card:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .slot-card.active { border-color: #ea580c; background-color: #fff7ed; }
+        .slot-title { font-weight: 700; font-size: 15px; color: #0f172a; display: block; }
+        .slot-time { font-size: 13px; color: #64748b; margin-top: 2px; display: block; }
+        .slot-card.active .slot-title { color: #ea580c; }
+        .slot-card.active .slot-time { color: #ea580c; opacity: 0.9; }
+
+        /* App Promo Banner */
+        .app-promo {
+            margin-top: 32px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+        .promo-title {
+            color: #1e3a8a;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .promo-desc {
+            color: #475569;
+            font-size: 13px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .promo-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s;
+        }
+        .promo-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .predicted-badge { position: absolute; top: -10px; right: 12px; background: #3b82f6; color: white; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3); }
+        .updating-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.7); display: none; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #ea580c; border-radius: 10px; }
+        .slot-card.updating .updating-overlay { display: flex; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="loading">Locating shipment details...</div>
+    <div id="errorBox" class="error"></div>
+
+    <div id="content">
+        <h2>SmartPost Tracking</h2>
+
+        <div class="header-grid">
+            <div>
+                <div class="label">Tracking Number</div>
+                <div id="trackingNo" class="value"></div>
+            </div>
+            <div>
+                <div class="label">Status</div>
+                <div id="statusBadge" class="badge"></div>
+            </div>
+            <div style="grid-column: span 2;">
+                <div class="label">Delivery To</div>
+                <div id="destination" class="value"></div>
+            </div>
+        </div>
+
+        <div class="section-title">Shipment Timeline</div>
+        <ul id="timelineContainer" class="timeline">
+        </ul>
+
+        <div id="slotSection" style="display: none;">
+            <div class="section-title">Change Delivery Slot</div>
+            <p style="font-size: 13px; color: #64748b; margin-top: -8px; margin-bottom: 16px;">
+                Select a time that works best for you. Your postman will be notified.
+            </p>
+            <div id="slotGrid" class="slot-grid">
+            </div>
+        </div>
+
+        <div class="app-promo">
+            <div class="promo-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                Get the SmartPost App
+            </div>
+            <div class="promo-desc">
+                Want to see detailed analytics, manage all your shipments in one place, and get real-time push notifications?
+            </div>
+            <a href="#" class="promo-btn" onclick="alert('Redirecting to Play Store/App Store...')">Register on App</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const trackingId = urlParams.get('id');
+    const token = urlParams.get('token');
+
+    // Standard India Post / Logistics steps
+    const STATUS_STEPS = [
+        { key: 'CREATED', label: 'Shipment Created' },
+        { key: 'ACCEPTED', label: 'Shipment Accepted'},
+        { key: 'IN_TRANSIT', label: 'In Transit' },
+        { key: 'ARRIVED_AT_DESTINATION', label: 'Arrived at Destination' },
+        { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery' },
+        { key: 'DELIVERED', label: 'Delivered' }
+    ];
+
+    // Inside tracking.html <script> section
+    const AVAILABLE_SLOTS = [
+    { id: 'SLOT_10_12', title: 'Morning', time: '10:00 AM - 12:00 PM' },
+    { id: 'SLOT_12_02', title: 'Early Afternoon', time: '12:00 PM - 02:00 PM' },
+    { id: 'SLOT_02_04', title: 'Late Afternoon', time: '02:00 PM - 04:00 PM' },
+    { id: 'SLOT_04_06', title: 'Evening', time: '04:00 PM - 06:00 PM' }
+];
+
+    let currentShipmentData = null;
+
+    async function loadShipment() {
+        if (!trackingId || !token) {
+            showError("Invalid tracking link. Missing ID or Token.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/v1/public/shipments/track/${trackingId}?token=${token}`);
+            if (!response.ok) throw new Error("This tracking link has expired or is invalid.");
+
+            const data = await response.json();
+            currentShipmentData = data;
+
+            // Populate Header UI
+            document.getElementById('trackingNo').innerText = data.trackingNumber;
+            document.getElementById('statusBadge').innerText = data.currentStatus.replace(/_/g, ' ');
+            document.getElementById('destination').innerText = `${data.destinationPoName} (${data.destinationPincode})`;
+
+            renderTimeline(data.trackingHistory || []);
+
+            // Only show slot changing if it hasn't been delivered yet
+            if (data.currentStatus !== 'DELIVERED' && data.currentStatus !== 'CANCELLED') {
+                document.getElementById('slotSection').style.display = 'block';
+                renderSlots(data.preferredSlot || data.predictedSlot, data.predictedSlot);
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+        } catch (err) {
+            showError(err.message);
+        }
+    }
+
+    function renderTimeline(history) {
+        const container = document.getElementById('timelineContainer');
+        let html = '';
+
+        STATUS_STEPS.forEach((step, index) => {
+            // Find if there is an event matching this step
+            const event = history.find(h => h.status === step.key);
+            const isCompleted = !!event;
+
+            // Check if the NEXT step is completed to color the connecting line red
+            const nextStep = STATUS_STEPS[index + 1];
+            const hasNextCompleted = nextStep ? !!history.find(h => h.status === nextStep.key) : false;
+
+            html += `
+                <li class="timeline-item ${isCompleted ? 'completed' : ''} ${hasNextCompleted ? 'line-active' : ''}">
+                    <div class="timeline-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <div class="timeline-title">${step.label}</div>
+                    ${event ? `
+                        <div class="timeline-desc">${event.description}</div>
+                        <div class="timeline-time">${event.location} • ${new Date(event.timestamp).toLocaleString(undefined, {
+                            day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'
+                        })}</div>
+                    ` : ''}
+                </li>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function renderSlots(activeSlot, predictedSlot) {
+        const container = document.getElementById('slotGrid');
+        let html = '';
+
+        AVAILABLE_SLOTS.forEach(slot => {
+            const isActive = slot.id === activeSlot;
+            const isPredicted = slot.id === predictedSlot;
+
+            html += `
+                <button
+                    class="slot-card ${isActive ? 'active' : ''}"
+                    id="slot-${slot.id}"
+                    onclick="updateSlot('${slot.id}')"
+                    ${isActive ? 'disabled' : ''}
+                >
+                    ${isPredicted ? '<div class="predicted-badge">AI Predicted</div>' : ''}
+                    <span class="slot-title">${slot.title}</span>
+                    <span class="slot-time">${slot.time}</span>
+                    <div class="updating-overlay">Updating...</div>
+                </button>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    async function updateSlot(newSlotId) {
+        const card = document.getElementById(`slot-${newSlotId}`);
+        if (!card) return;
+
+        // Disable grid and show updating overlay
+        document.querySelectorAll('.slot-card').forEach(c => c.disabled = true);
+        card.classList.add('updating');
+
+        try {
+            const response = await fetch(`/api/v1/public/shipments/track/${trackingId}/slot?token=${token}&newSlot=${newSlotId}`, {
+                method: 'PUT'
+            });
+            if (!response.ok) throw new Error("Failed to update slot. The link might have expired.");
+
+            // Re-render slots with the new active selection
+            renderSlots(newSlotId, currentShipmentData.predictedSlot);
+        } catch (err) {
+            alert(err.message);
+            // Re-enable grid on failure
+            renderSlots(currentShipmentData.preferredSlot || currentShipmentData.predictedSlot, currentShipmentData.predictedSlot);
+        }
+    }
+
+    function showError(msg) {
+        document.getElementById('loading').style.display = 'none';
+        const errBox = document.getElementById('errorBox');
+        errBox.innerText = msg;
+        errBox.style.display = 'block';
+    }
+
+    // Auto-load on page open
+    loadShipment();
+</script>
+
+</body>
+</html>

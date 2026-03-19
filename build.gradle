@@ -21,6 +21,7 @@ configurations {
 }
 
 repositories {
+	google()
 	mavenCentral()
 }
 
@@ -43,6 +44,12 @@ dependencies {
 
 	// validation for dto's
 	implementation "org.springframework.boot:spring-boot-starter-validation:4.0.0-M3"
+	implementation "org.springframework.boot:spring-boot-starter-mail:4.0.0"
+
+	implementation "com.twilio.sdk:twilio:11.3.5"
+
+	implementation "com.google.firebase:firebase-messaging:25.0.1"
+	implementation 'com.google.firebase:firebase-admin:9.8.0'
 }
 
 tasks.named('test') {

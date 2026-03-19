@@ -1,0 +1,146 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework.boot",
+    "module": "spring-boot-starter-mail",
+    "version": "3.5.6",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.14.3"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-starter",
+          "version": {
+            "requires": "3.5.6"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-context-support",
+          "version": {
+            "requires": "6.2.11"
+          }
+        },
+        {
+          "group": "org.eclipse.angus",
+          "module": "jakarta.mail",
+          "version": {
+            "requires": "2.0.4"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-starter-mail-3.5.6.jar",
+          "url": "spring-boot-starter-mail-3.5.6.jar",
+          "size": 4774,
+          "sha512": "4f5f9e64d074f7d007f41d79e48424fffe950496e4827d16c24262ecb2a9f8564912e0d5925e027aadd063e1a2add9e2b8484b3755472914b2061de3ede0f282",
+          "sha256": "e751727029e82cae211d89e331d524f3730f802d6f80ed5def44ad8c45727301",
+          "sha1": "3eb538d7fd28516e08908d9b9b912a8d8ec5cc8e",
+          "md5": "bfdc6a5d5d0fd5d435ab87d17bf9d654"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-starter",
+          "version": {
+            "requires": "3.5.6"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-context-support",
+          "version": {
+            "requires": "6.2.11"
+          }
+        },
+        {
+          "group": "org.eclipse.angus",
+          "module": "jakarta.mail",
+          "version": {
+            "requires": "2.0.4"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-starter-mail-3.5.6.jar",
+          "url": "spring-boot-starter-mail-3.5.6.jar",
+          "size": 4774,
+          "sha512": "4f5f9e64d074f7d007f41d79e48424fffe950496e4827d16c24262ecb2a9f8564912e0d5925e027aadd063e1a2add9e2b8484b3755472914b2061de3ede0f282",
+          "sha256": "e751727029e82cae211d89e331d524f3730f802d6f80ed5def44ad8c45727301",
+          "sha1": "3eb538d7fd28516e08908d9b9b912a8d8ec5cc8e",
+          "md5": "bfdc6a5d5d0fd5d435ab87d17bf9d654"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-starter-mail-3.5.6-javadoc.jar",
+          "url": "spring-boot-starter-mail-3.5.6-javadoc.jar",
+          "size": 4774,
+          "sha512": "4f5f9e64d074f7d007f41d79e48424fffe950496e4827d16c24262ecb2a9f8564912e0d5925e027aadd063e1a2add9e2b8484b3755472914b2061de3ede0f282",
+          "sha256": "e751727029e82cae211d89e331d524f3730f802d6f80ed5def44ad8c45727301",
+          "sha1": "3eb538d7fd28516e08908d9b9b912a8d8ec5cc8e",
+          "md5": "bfdc6a5d5d0fd5d435ab87d17bf9d654"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-starter-mail-3.5.6-sources.jar",
+          "url": "spring-boot-starter-mail-3.5.6-sources.jar",
+          "size": 4774,
+          "sha512": "4f5f9e64d074f7d007f41d79e48424fffe950496e4827d16c24262ecb2a9f8564912e0d5925e027aadd063e1a2add9e2b8484b3755472914b2061de3ede0f282",
+          "sha256": "e751727029e82cae211d89e331d524f3730f802d6f80ed5def44ad8c45727301",
+          "sha1": "3eb538d7fd28516e08908d9b9b912a8d8ec5cc8e",
+          "md5": "bfdc6a5d5d0fd5d435ab87d17bf9d654"
+        }
+      ]
+    }
+  ]
+}
