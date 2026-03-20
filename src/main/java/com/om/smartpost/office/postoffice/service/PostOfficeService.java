@@ -60,6 +60,9 @@ public class PostOfficeService {
 
         office.setBranchType(branchType);
         office.setDeliveryStatus(deliveryStatus);
+        office.setAddress(request.getAddress());
+        office.setLatitude(request.getLatitude());
+        office.setLongitude(request.getLongitude());
 
         PostOffice saved = postOfficeRepository.save(office);
 

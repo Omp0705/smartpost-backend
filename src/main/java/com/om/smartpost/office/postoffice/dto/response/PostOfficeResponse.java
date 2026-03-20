@@ -17,6 +17,9 @@ public record PostOfficeResponse(
         String state,
         String country,
         String pincode,
+        String address,
+        Double lat,
+        Double lng,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

@@ -50,6 +50,7 @@ dependencies {
 
 	implementation "com.google.firebase:firebase-messaging:25.0.1"
 	implementation 'com.google.firebase:firebase-admin:9.8.0'
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 }
 
 tasks.named('test') {

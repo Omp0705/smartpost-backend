@@ -1,8 +1,8 @@
-package com.om.smartpost.shipment.notification.entity;
+package com.om.smartpost.notification.entities;
 
 import com.om.smartpost.core.identity.entity.User;
 
-import com.om.smartpost.shipment.notification.enums.NotificationType;
+import com.om.smartpost.notification.enums.NotificationType;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -23,6 +23,7 @@ public class Notification {
     private String title;
     private String message;
     private String link; // For SMS users or deep-linking in app
+    private String description;
 
     private boolean isRead = false;
     private LocalDateTime createdAt = LocalDateTime.now();

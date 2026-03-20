@@ -107,8 +107,8 @@ public class ShipmentService {
             // If Google is down, the shipment still creates successfully, just without coordinates.
             log.warn("Failed to fetch coordinates for receiver. Error: {}", e.getMessage());
         }
-        shipment.setSenderDetails(shipmentContactMapper.toEntity(request.senderDetails()));
-        shipment.setReceiverDetails(shipmentContactMapper.toEntity(request.receiverDetails()));
+        shipment.setSenderDetails(senderEntity);
+        shipment.setReceiverDetails(receiverEntity);
         shipment.setReceiverUser(resolveReceiver(request.receiverDetails()));
         shipment.setBookingDate(LocalDate.now());
 

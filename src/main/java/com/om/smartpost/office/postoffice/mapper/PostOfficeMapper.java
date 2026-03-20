@@ -44,6 +44,9 @@ public class PostOfficeMapper {
                 office.getState(),
                 office.getCountry(),
                 office.getPincode(),
+                office.getAddress(),
+                office.getLatitude(),
+                office.getLongitude(),
                 office.getCreatedAt(),
                 office.getUpdatedAt()
         );

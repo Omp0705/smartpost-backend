@@ -1,4 +1,4 @@
-package com.om.smartpost.shipment.notification.enums;
+package com.om.smartpost.notification.enums;
 
 public enum NotificationType  {
     SMS,

@@ -69,6 +69,15 @@ public class PostOffice {
     @Column(nullable = false, length = 10)
     private String pincode;
 
+    @Column(name = "address", columnDefinition = "TEXT")
+    private String address;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
     @OneToMany(mappedBy = "office", cascade = CascadeType.ALL)
     @Builder.Default
     private List<PostAdmin> postAdmins = new ArrayList<>();

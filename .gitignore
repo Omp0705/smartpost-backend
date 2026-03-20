@@ -38,3 +38,9 @@ out/
 
 # Firebase keys
 src/main/resources/firebase/firebase-service-account.json
+
+# .env file
+.env
+
+
+

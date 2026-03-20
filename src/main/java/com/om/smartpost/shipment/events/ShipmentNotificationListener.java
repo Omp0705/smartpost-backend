@@ -1,8 +1,9 @@
 package com.om.smartpost.shipment.events;
 
+import com.om.smartpost.notification.entities.Notification;
 import com.om.smartpost.shipment.entity.Shipment;
 import com.om.smartpost.core.identity.entity.User;
-import com.om.smartpost.shipment.notification.repository.NotificationRepository;
+import com.om.smartpost.notification.repository.NotificationRepository;
 import com.om.smartpost.core.notification.FcmService;
 import com.om.smartpost.core.notification.MagicLinkService;
 import com.om.smartpost.core.notification.SmsService;
@@ -33,7 +34,7 @@ public class ShipmentNotificationListener {
 
         if (receiver != null) {
             //  REGISTERED USER
-            com.om.smartpost.shipment.notification.entity.Notification dbNotif = new com.om.smartpost.shipment.notification.entity.Notification();
+            Notification dbNotif = new Notification();
             dbNotif.setRecipient(receiver);
             dbNotif.setTitle("New Shipment Received!");
             dbNotif.setMessage("A parcel with tracking ID " + shipment.getTrackingNumber() + " is headed to you.");

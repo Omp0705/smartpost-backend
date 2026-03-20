@@ -39,6 +39,13 @@ public class PostOfficeRequest {
 
     @NotBlank
     private String pincode;
+
+    @NotBlank
+    String address;
+
+    Double latitude;
+
+    Double longitude;
 }
 
 
