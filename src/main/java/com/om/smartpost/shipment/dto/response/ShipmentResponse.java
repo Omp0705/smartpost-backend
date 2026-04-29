@@ -44,6 +44,8 @@ public record ShipmentResponse(
         DeliverySlot predictedSlot,
         LocalDate bookingDate,
         LocalDate deliveryDate,
+        UUID beatId,
+        String beatCode,
         String postmanEmployeeId,
         String postmanName,
         LocalDateTime createdAt,

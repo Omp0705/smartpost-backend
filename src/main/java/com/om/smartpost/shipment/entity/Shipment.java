@@ -1,6 +1,7 @@
 package com.om.smartpost.shipment.entity;
 
 import com.om.smartpost.core.identity.entity.User;
+import com.om.smartpost.office.beat.entity.Beat;
 import com.om.smartpost.office.staff.entity.Postman;
 import com.om.smartpost.shipment.enums.*;
 import jakarta.persistence.*;
@@ -112,6 +113,10 @@ public class Shipment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "postman_id")
     private Postman postman;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "beat_id")
+    private Beat beat;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;

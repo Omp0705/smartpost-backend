@@ -23,6 +23,7 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
     List<Shipment> findBySenderUser_UserId(Long userId);
     // Finds all shipments where the provided phone number matches the receiver's phone number
     List<Shipment> findByReceiverDetails_MobileNo(String mobileNo);
+    List<Shipment> findByBeat_IdOrderByCreatedAtDesc(UUID beatId);
 
     long countByReceiverDetails_MobileNoAndCurrentStatus(String mobileNo, com.om.smartpost.shipment.enums.ShipmentStatus status);
 

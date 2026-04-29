@@ -15,6 +15,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -113,6 +114,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ErrorCodes.INVALID_INPUT.toString(),
                 ex.getMessage() != null ? ex.getMessage() : "Request is not in a valid state", null);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String parameterName = ex.getName() != null ? ex.getName() : "parameter";
+        String message = "Invalid value for '" + parameterName + "'";
+        return buildResponse(HttpStatus.BAD_REQUEST, ErrorCodes.INVALID_INPUT.toString(), message, null);
     }
 
     @ExceptionHandler(Exception.class)

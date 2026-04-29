@@ -4,8 +4,10 @@ import com.om.smartpost.core.identity.UserRole;
 import com.om.smartpost.core.security.AuthenticatedUserFacade;
 import com.om.smartpost.office.beat.dto.request.BeatAssignmentRequest;
 import com.om.smartpost.office.beat.dto.request.BeatRequest;
+import com.om.smartpost.office.beat.dto.request.GeneratedBeatSaveRequest;
 import com.om.smartpost.office.beat.dto.response.BeatResponse;
 import com.om.smartpost.office.beat.service.BeatService;
+import com.om.smartpost.shipment.dto.response.ShipmentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,18 @@ public class BeatController {
         );
     }
 
+    @PostMapping("/generated")
+    @PreAuthorize("hasAnyRole('POSTADMIN', 'SUPERADMIN')")
+    public ResponseEntity<List<BeatResponse>> saveGeneratedBeats(Authentication authentication, @Valid @RequestBody GeneratedBeatSaveRequest request) {
+        return ResponseEntity.ok(
+                beatService.saveGeneratedBeats(
+                        authenticatedUserFacade.currentUserId(authentication),
+                        authenticatedUserFacade.currentUserRole(authentication),
+                        request
+                )
+        );
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('POSTMAN', 'POSTADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<BeatResponse>> getAll(Authentication authentication, @RequestParam(required = false) UUID officeId) {
@@ -40,7 +54,34 @@ public class BeatController {
         );
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/assigned")
+    @PreAuthorize("hasAnyRole('POSTMAN', 'POSTADMIN', 'SUPERADMIN')")
+    public ResponseEntity<List<BeatResponse>> getAssignedBeats(
+            Authentication authentication,
+            @RequestParam(required = false) UUID postmanId
+    ) {
+        return ResponseEntity.ok(
+                beatService.getAssignedBeats(
+                        authenticatedUserFacade.currentUserId(authentication),
+                        authenticatedUserFacade.currentUserRole(authentication),
+                        postmanId
+                )
+        );
+    }
+
+    @GetMapping("/{id:[0-9a-fA-F\\-]{36}}/shipments")
+    @PreAuthorize("hasAnyRole('POSTMAN', 'POSTADMIN', 'SUPERADMIN')")
+    public ResponseEntity<List<ShipmentResponse>> getShipmentsByBeatId(Authentication authentication, @PathVariable UUID id) {
+        return ResponseEntity.ok(
+                beatService.getShipmentsByBeatId(
+                        id,
+                        authenticatedUserFacade.currentUserId(authentication),
+                        authenticatedUserFacade.currentUserRole(authentication)
+                )
+        );
+    }
+
+    @GetMapping("/{id:[0-9a-fA-F\\-]{36}}")
     @PreAuthorize("hasAnyRole('POSTMAN', 'POSTADMIN', 'SUPERADMIN')")
     public ResponseEntity<BeatResponse> getById(Authentication authentication, @PathVariable UUID id) {
         return ResponseEntity.ok(
@@ -48,7 +89,7 @@ public class BeatController {
         );
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:[0-9a-fA-F\\-]{36}}")
     @PreAuthorize("hasAnyRole('POSTADMIN', 'SUPERADMIN')")
     public ResponseEntity<BeatResponse> update(Authentication authentication, @PathVariable UUID id, @Valid @RequestBody BeatRequest request) {
         return ResponseEntity.ok(
@@ -56,7 +97,7 @@ public class BeatController {
         );
     }
 
-    @PutMapping("/{id}/assign-postman")
+    @PutMapping("/{id:[0-9a-fA-F\\-]{36}}/assign-postman")
     @PreAuthorize("hasAnyRole('POSTADMIN', 'SUPERADMIN')")
     public ResponseEntity<BeatResponse> assignPostman(Authentication authentication, @PathVariable UUID id, @RequestBody BeatAssignmentRequest request) {
         return ResponseEntity.ok(
@@ -64,7 +105,7 @@ public class BeatController {
         );
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:[0-9a-fA-F\\-]{36}}")
     @PreAuthorize("hasAnyRole('POSTADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> delete(Authentication authentication, @PathVariable UUID id) {
         beatService.delete(id, authenticatedUserFacade.currentUserId(authentication), authenticatedUserFacade.currentUserRole(authentication));

@@ -2,6 +2,7 @@ package com.om.smartpost.office.beat.entity;
 
 import com.om.smartpost.office.postoffice.entity.PostOffice;
 import com.om.smartpost.office.staff.entity.Postman;
+import com.om.smartpost.shipment.entity.Shipment;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -22,6 +24,8 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "beats")
@@ -68,6 +72,10 @@ public class Beat {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "beat")
+    @Builder.Default
+    private List<Shipment> shipments = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

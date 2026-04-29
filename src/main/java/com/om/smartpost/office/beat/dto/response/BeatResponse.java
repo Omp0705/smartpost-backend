@@ -14,7 +14,8 @@ public record BeatResponse(
         Boolean active,
         UUID assignedPostmanId,
         String assignedPostmanEmployeeId,
-        String assignedPostmanName
+        String assignedPostmanName,
+        int shipmentCount
 ) {
 }
 

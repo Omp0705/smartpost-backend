@@ -67,6 +67,8 @@ public class ShipmentMapper {
                 shipment.getPredictedSlot(),
                 shipment.getBookingDate(),
                 shipment.getDeliveryDate(),
+                shipment.getBeat() != null ? shipment.getBeat().getId() : null,
+                shipment.getBeat() != null ? shipment.getBeat().getBeatCode() : null,
                 shipment.getPostman() != null ? shipment.getPostman().getEmployeeId() : null,
                 shipment.getPostman() != null && shipment.getPostman().getUser() != null
                         ? shipment.getPostman().getUser().getFullName()

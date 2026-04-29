@@ -40,7 +40,8 @@ public class BeatMapper {
                 beat.getAssignedPostman() != null ? beat.getAssignedPostman().getEmployeeId() : null,
                 beat.getAssignedPostman() != null && beat.getAssignedPostman().getUser() != null
                         ? beat.getAssignedPostman().getUser().getFullName()
-                        : null
+                        : null,
+                beat.getShipments() != null ? beat.getShipments().size() : 0
         );
     }
 }

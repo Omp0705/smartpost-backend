@@ -2,6 +2,8 @@ package com.om.smartpost.office.beat.service;
 
 import com.om.smartpost.office.beat.dto.request.BeatAssignmentRequest;
 import com.om.smartpost.office.beat.dto.request.BeatRequest;
+import com.om.smartpost.office.beat.dto.request.GeneratedBeatSaveItemRequest;
+import com.om.smartpost.office.beat.dto.request.GeneratedBeatSaveRequest;
 import com.om.smartpost.office.beat.dto.response.BeatResponse;
 import com.om.smartpost.office.beat.entity.Beat;
 import com.om.smartpost.office.staff.entity.PostAdmin;
@@ -15,12 +17,18 @@ import com.om.smartpost.office.beat.repository.BeatRepository;
 import com.om.smartpost.office.postoffice.service.PostOfficeService;
 import com.om.smartpost.office.staff.repository.PostAdminRepository;
 import com.om.smartpost.office.staff.repository.PostmanRepository;
+import com.om.smartpost.shipment.dto.response.ShipmentResponse;
+import com.om.smartpost.shipment.entity.Shipment;
+import com.om.smartpost.shipment.mapper.ShipmentMapper;
+import com.om.smartpost.shipment.repository.ShipmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -32,6 +40,8 @@ public class BeatService {
     private final PostAdminRepository postAdminRepository;
     private final PostOfficeService postOfficeService;
     private final BeatMapper beatMapper;
+    private final ShipmentRepository shipmentRepository;
+    private final ShipmentMapper shipmentMapper;
 
     @Transactional
     public BeatResponse create(Long actorUserId, UserRole actorRole, BeatRequest request) {
@@ -66,6 +76,47 @@ public class BeatService {
         Beat beat = findBeat(beatId);
         validateOfficeAccess(actorUserId, actorRole, beat.getOffice().getId());
         return beatMapper.toResponse(beat);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BeatResponse> getAssignedBeats(Long actorUserId, UserRole actorRole, UUID requestedPostmanId) {
+        UUID targetPostmanId;
+        if (actorRole == UserRole.POSTMAN) {
+            Postman actorPostman = postmanRepository.findByUser_UserId(actorUserId)
+                    .orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.FORBIDDEN.toString(), "Postman profile not found"));
+
+            if (requestedPostmanId != null && !requestedPostmanId.equals(actorPostman.getId())) {
+                throw new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.FORBIDDEN.toString(), "You can view only your assigned beats");
+            }
+            targetPostmanId = actorPostman.getId();
+        } else if (actorRole == UserRole.POSTADMIN || actorRole == UserRole.SUPERADMIN) {
+            if (requestedPostmanId == null) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, ErrorCodes.INVALID_INPUT.toString(), "Postman ID is required");
+            }
+
+            Postman targetPostman = postmanRepository.findById(requestedPostmanId)
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, ErrorCodes.NOT_FOUND.toString(), "Postman not found"));
+            validateOfficeAccess(actorUserId, actorRole, targetPostman.getOffice().getId());
+            targetPostmanId = targetPostman.getId();
+        } else {
+            throw new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.FORBIDDEN.toString(), "You do not have permission to access this resource");
+        }
+
+        return beatRepository.findByAssignedPostman_Id(targetPostmanId)
+                .stream()
+                .map(beatMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ShipmentResponse> getShipmentsByBeatId(UUID beatId, Long actorUserId, UserRole actorRole) {
+        Beat beat = findBeat(beatId);
+        validateBeatShipmentAccess(beat, actorUserId, actorRole);
+
+        return shipmentRepository.findByBeat_IdOrderByCreatedAtDesc(beatId)
+                .stream()
+                .map(shipmentMapper::toResponse)
+                .toList();
     }
 
     @Transactional
@@ -104,6 +155,63 @@ public class BeatService {
     }
 
     @Transactional
+    public List<BeatResponse> saveGeneratedBeats(Long actorUserId, UserRole actorRole, GeneratedBeatSaveRequest request) {
+        validateOfficeAccess(actorUserId, actorRole, request.getOfficeId());
+
+        PostOffice office = postOfficeService.findOffice(request.getOfficeId());
+        validateNoDuplicateShipmentIds(request.getBeats());
+
+        List<BeatResponse> responses = new java.util.ArrayList<>();
+        for (GeneratedBeatSaveItemRequest item : request.getBeats()) {
+            Postman postman = null;
+            if (item.getAssignedPostmanId() != null) {
+                postman = postmanRepository.findById(item.getAssignedPostmanId())
+                        .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, ErrorCodes.NOT_FOUND.toString(), "Postman not found"));
+
+                if (!postman.getOffice().getId().equals(office.getId())) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST, ErrorCodes.INVALID_INPUT.toString(), "Beat and postman must belong to the same office");
+                }
+            }
+
+            Beat beat = beatRepository.findByBeatCodeAndOffice_Id(item.getBeatCode(), office.getId())
+                    .orElseGet(Beat::new);
+            boolean isNew = beat.getId() == null;
+            if (isNew) {
+                beat.setOffice(office);
+            }
+
+            beat.setBeatCode(item.getBeatCode());
+            beat.setName(item.getName());
+            beat.setDescription(item.getDescription());
+            beat.setAreaKeywords(item.getAreaKeywords());
+            beat.setRouteOrder(item.getRouteOrder());
+            beat.setActive(Boolean.TRUE);
+            beat.setAssignedPostman(postman);
+
+            Beat savedBeat = beatRepository.save(beat);
+            Set<UUID> shipmentIds = new HashSet<>(item.getShipmentIds());
+            detachRemovedShipments(savedBeat, shipmentIds);
+
+            List<Shipment> shipments = shipmentRepository.findAllById(item.getShipmentIds());
+            if (shipments.size() != shipmentIds.size()) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, ErrorCodes.INVALID_INPUT.toString(), "One or more shipments were not found");
+            }
+
+            for (Shipment shipment : shipments) {
+                if (!shipmentBelongsToOffice(shipment, office)) {
+                    continue;
+                }
+                shipment.setBeat(savedBeat);
+                shipment.setPostman(postman);
+            }
+            shipmentRepository.saveAll(shipments);
+            responses.add(beatMapper.toResponse(savedBeat));
+        }
+
+        return responses;
+    }
+
+    @Transactional
     public void delete(UUID beatId, Long actorUserId, UserRole actorRole) {
         Beat beat = findBeat(beatId);
         validateOfficeAccess(actorUserId, actorRole, beat.getOffice().getId());
@@ -129,6 +237,56 @@ public class BeatService {
         if (!postAdmin.getOffice().getId().equals(officeId)) {
             throw new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.FORBIDDEN.toString(), "You can manage beats only for your assigned office");
         }
+    }
+
+    private void validateNoDuplicateShipmentIds(List<GeneratedBeatSaveItemRequest> beats) {
+        Set<UUID> seen = new HashSet<>();
+        for (GeneratedBeatSaveItemRequest beat : beats) {
+            for (UUID shipmentId : beat.getShipmentIds()) {
+                if (!seen.add(shipmentId)) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST, ErrorCodes.INVALID_INPUT.toString(), "A shipment cannot belong to more than one generated beat in the same request");
+                }
+            }
+        }
+    }
+
+    private void detachRemovedShipments(Beat beat, Set<UUID> keptShipmentIds) {
+        if (beat.getShipments() == null) {
+            return;
+        }
+        for (Shipment existingShipment : beat.getShipments()) {
+            if (!keptShipmentIds.contains(existingShipment.getId())) {
+                existingShipment.setBeat(null);
+                existingShipment.setPostman(null);
+            }
+        }
+    }
+
+    private boolean shipmentBelongsToOffice(Shipment shipment, PostOffice office) {
+        return office.getPincode().equals(shipment.getDestinationPincode());
+    }
+
+    private void validateBeatShipmentAccess(Beat beat, Long actorUserId, UserRole actorRole) {
+        if (actorRole == UserRole.SUPERADMIN) {
+            return;
+        }
+
+        if (actorRole == UserRole.POSTADMIN) {
+            validateOfficeAccess(actorUserId, actorRole, beat.getOffice().getId());
+            return;
+        }
+
+        if (actorRole == UserRole.POSTMAN) {
+            Postman actorPostman = postmanRepository.findByUser_UserId(actorUserId)
+                    .orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.FORBIDDEN.toString(), "Postman profile not found"));
+
+            if (beat.getAssignedPostman() == null || !actorPostman.getId().equals(beat.getAssignedPostman().getId())) {
+                throw new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.FORBIDDEN.toString(), "You can access shipments only for your assigned beats");
+            }
+            return;
+        }
+
+        throw new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.FORBIDDEN.toString(), "You do not have permission to access this resource");
     }
 }
 
